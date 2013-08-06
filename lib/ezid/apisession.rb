@@ -108,20 +108,17 @@ module Ezid
 
     private
 
+    def available_request_methods
+      [:get, :put, :post, :delete]
+    end
+
     def call_api(request_uri, request_method, request_data=nil)
       uri = URI(SECURESERVER + request_uri)
 
       # which HTTP method to use?
-      if request_method == :get
-        request = Net::HTTP::Get.new uri.request_uri
-      elsif request_method == :put
-        request = Net::HTTP::Put.new uri.request_uri
-        request.body = make_anvl(request_data)
-      elsif request_method == :post
-        request = Net::HTTP::Post.new uri.request_uri
-        request.body = make_anvl(request_data)
-      elsif request_method == :delete
-        request = Net::HTTP::Delete.new uri.request_uri
+      if available_request_methods.include?(request_method)
+        request = Net::HTTP.const_get(request_method.to_s.capitalize.to_sym).new(uri.request_uri)
+        request.body = make_anvl(request_data) unless request_data.nil?
       end
 
       request.basic_auth @user, @pass
